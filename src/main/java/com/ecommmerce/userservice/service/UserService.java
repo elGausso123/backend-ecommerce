@@ -4,6 +4,7 @@
  */
 package com.ecommmerce.userservice.service;
 
+import com.ecommmerce.userservice.dto.UserRegistrationDto;
 import com.ecommmerce.userservice.entity.User;
 import com.ecommmerce.userservice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,13 +24,14 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
     
-    public User registerUser(User user){
+    public User registerUser(UserRegistrationDto user){
         //Verifica si el mail existe
         if(userRepository.findByEmail(user.getEmail()).isPresent()){
             throw new RuntimeException("El email ya está registrado");
         }
         //Encriptamos la contraseña
         user.setPassword( passwordEncoder.encode(user.getPassword()));
+        User user_ = new User(user);
         return userRepository.save(user);
     }
     

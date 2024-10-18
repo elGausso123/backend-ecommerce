@@ -4,6 +4,8 @@
  */
 package com.ecommmerce.userservice.controller;
 
+import com.ecommmerce.userservice.dto.LoginRequestDto;
+import com.ecommmerce.userservice.dto.UserRegistrationDto;
 import com.ecommmerce.userservice.entity.User;
 import com.ecommmerce.userservice.security.JwtUtil;
 import com.ecommmerce.userservice.service.UserService;
@@ -11,6 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,9 +42,9 @@ public class AuthController {
     
     
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody User user){
+    public ResponseEntity<?> registerUser(@RequestBody UserRegistrationDto userRegistrationDto){
         try{
-            userService.registerUser(user);
+            userService.registerUser(userRegistrationDto);
             return new ResponseEntity<>("Usuario registrado exitosamente",HttpStatus.CREATED);
         }catch(Exception e){
             return new ResponseEntity<>("Error al regostrar usuario" + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -46,7 +52,11 @@ public class AuthController {
     }
     
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest){
-        
+    public ResponseEntity<?> loginUser(@RequestBody LoginRequestDto login){
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(login.getUsername(),login.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = jwtUtil.generateToken((UserDetails)authentication.getPrincipal());
+        return ResponseEntity.ok(jwt);
     }
 }
